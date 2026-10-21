@@ -1,5 +1,8 @@
 import { App } from "aws-cdk-lib";
 import { Template } from "aws-cdk-lib/assertions";
+import { pathToFileURL } from "node:url";
+import { createRequire } from "node:module";
+import path from "node:path";
 
 async function main() {
   // Synthetic identifiers only; synthesis neither reads credentials nor deploys.
@@ -13,7 +16,18 @@ async function main() {
     "amplify-backend-namespace": "localtest",
     "amplify-backend-type": "branch",
   });
-  const { backend } = await import("../amplify/backend");
+  // Match Amplify's scoped loader; a global tsx hook can hide ESM setup errors.
+  const projectRequire = createRequire(import.meta.url);
+  const deployerRequire = createRequire(
+    projectRequire.resolve("@aws-amplify/backend-deployer"),
+  );
+  const { tsImport } = await import(
+    pathToFileURL(deployerRequire.resolve("tsx/esm/api")).href
+  );
+  const { backend } = await tsImport(
+    pathToFileURL(path.resolve("amplify/backend.ts")).href,
+    import.meta.url,
+  );
   const auth = Template.fromStack(backend.auth.resources.userPool.stack);
   auth.hasResourceProperties("AWS::Cognito::UserPool", {
     MfaConfiguration: "ON",
@@ -43,7 +57,9 @@ async function main() {
     },
   });
   storage.resourceCountIs("Custom::S3AutoDeleteObjects", 0);
-  (backend.stack.node.root as App).synth();
+  const app = backend.stack.node.root;
+  if (!(app instanceof App)) throw new Error("Expected a CDK application.");
+  app.synth();
   console.log(
     "Full Gen 2 synthesis passed: required TOTP, fixed callback, retained private bucket and database dependency graph. No AWS deployment performed.",
   );

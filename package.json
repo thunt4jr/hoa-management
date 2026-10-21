@@ -18,7 +18,7 @@
     "format:check": "prettier --check pages src scripts tests styles amplify next.config.ts proxy.ts playwright.config.ts",
     "amplify:package": "tsx scripts/package-amplify.ts",
     "amplify:prepare": "tsx scripts/prepare-amplify.ts",
-    "amplify:synth": "node --import tsx scripts/synth-amplify.ts",
+    "amplify:synth": "node scripts/synth-amplify.mjs",
     "test:amplify-package": "node --import tsx scripts/test-amplify-package.ts",
     "verify:deployment": "node --import tsx scripts/verify-deployment.ts"
   },
