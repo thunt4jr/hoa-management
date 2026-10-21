@@ -40,7 +40,7 @@ npm run test:e2e
 AWS_PROFILE=personal AWS_REGION=us-east-1 npm run amplify:prepare
 ```
 
-`amplify:prepare` reuses only an app matching this repository or creates one,
+`amplify:prepare` reuses only the dedicated development app matching this repository or creates one,
 creates its development branch with auto-build/previews disabled, and writes
 non-secret references to ignored `.data/amplify-development.json`. It sends the
 current GitHub token to Amplify's repository-connection API in memory; it never
@@ -48,27 +48,39 @@ prints or stores that token. GitHub app/organization rules can require an owner
 to complete authorization. Do not circumvent that requirement. Supply an explicitly
 reviewed `AWS_APP_ID` if an existing app name is ambiguous.
 
-Read the app ID from that file and substitute it below:
+Development uses a dedicated Amplify app named `hoa-management-development`,
+with only the development branch connected. This avoids changing the service role
+used by an existing app's main branch. Existing app-wide roles are never replaced.
+The setup command creates or reuses only the matching development app and its
+owned deployment role. Its build specification and runtime role stay scoped to
+that development branch. Staging/main are promoted through Git separately and
+need reviewed environment resources before deployment.
 
-```sh
-AWS_PROFILE=personal AWS_REGION=us-east-1 AWS_APP_ID=YOUR_APP_ID AWS_BRANCH=development npx ampx pipeline-deploy --branch development --app-id YOUR_APP_ID
-AWS_PROFILE=personal AWS_REGION=us-east-1 AWS_APP_ID=YOUR_APP_ID AWS_BRANCH=development npx tsx scripts/attach-amplify-role.ts
-npm run build
-npm run amplify:package
-```
-
-Gen 2 writes ignored `amplify_outputs.json`, including only resource references.
-The entrypoint reads the session secret at runtime using its compute IAM role.
-Data API receives the runtime secret reference and resolves the database password.
-No plaintext secret is packaged. The fixed central origin is
-`https://development.YOUR_APP_ID.amplifyapp.com`.
-
-Push reviewed code to development, then explicitly start and monitor hosting:
+Push reviewed code to development, then start and monitor its hosting build:
 
 ```sh
 aws amplify start-job --app-id YOUR_APP_ID --branch-name development --job-type RELEASE --profile personal --region us-east-1
 aws amplify list-jobs --app-id YOUR_APP_ID --branch-name development --profile personal --region us-east-1
 ```
+
+The build runs `ampx pipeline-deploy` inside Amplify CI and writes the backend
+outputs before packaging. The CLI rejects this command outside CI. For local
+backend experimentation use a separately reviewed sandbox; do not substitute a
+sandbox for the shared development environment.
+
+After the backend deploys, local inspection/packaging can fetch its non-secret
+references using:
+
+```sh
+AWS_PROFILE=personal AWS_REGION=us-east-1 npx ampx generate outputs --app-id YOUR_APP_ID --branch development
+npm run build
+npm run amplify:package
+```
+
+Gen 2 writes ignored `amplify_outputs.json`. The runtime entrypoint reads the
+session secret using its compute IAM role. Data API receives the runtime secret
+reference and resolves the password. No plaintext secret is packaged. The central
+origin is `https://development.YOUR_APP_ID.amplifyapp.com`.
 
 `amplify.yml` deploys Gen 2, attaches the runtime role, validates code and packages
 hosting. It never runs the synthetic seed. Database/browser tests run locally

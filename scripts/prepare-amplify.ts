@@ -7,6 +7,7 @@ import {
   CreateAppCommand,
   GetBranchCommand,
   CreateBranchCommand,
+  UpdateBranchCommand,
 } from "@aws-sdk/client-amplify";
 import {
   IAMClient,
@@ -28,6 +29,7 @@ async function main() {
   const amplify = new AmplifyClient({ region });
   const iam = new IAMClient({ region });
   const repository = "https://github.com/thunt4jr/hoa-management";
+  const appName = "hoa-management-development";
   let appId = process.env.AWS_APP_ID;
   if (!appId) {
     const matches = [];
@@ -36,9 +38,7 @@ async function main() {
       const apps = await amplify.send(
         new ListAppsCommand({ maxResults: 100, nextToken }),
       );
-      matches.push(
-        ...(apps.apps || []).filter((app) => app.name === "hoa-management"),
-      );
+      matches.push(...(apps.apps || []).filter((app) => app.name === appName));
       nextToken = apps.nextToken;
     } while (nextToken);
     if (matches.length) {
@@ -52,7 +52,8 @@ async function main() {
   if (appId) {
     const existing = (await amplify.send(new GetAppCommand({ appId }))).app;
     if (
-      existing?.repository !== repository ||
+      existing?.name !== appName ||
+      existing.repository !== repository ||
       existing.platform !== "WEB_COMPUTE"
     )
       throw new SetupError(
@@ -83,6 +84,8 @@ async function main() {
         }),
       )
     ).Role;
+    // IAM's CreateRole response can omit Description; verify using GetRole.
+    role = (await iam.send(new GetRoleCommand({ RoleName: roleName }))).Role;
   }
   if (!role?.Arn || role.Description !== "Amplify Gen 2 development deployment")
     throw new SetupError(
@@ -102,12 +105,13 @@ async function main() {
     }).trim();
     const result = await amplify.send(
       new CreateAppCommand({
-        name: "hoa-management",
+        name: appName,
         repository,
         accessToken: token,
         platform: "WEB_COMPUTE",
         iamServiceRoleArn: role.Arn,
         enableBranchAutoBuild: false,
+        enableAutoBranchCreation: false,
         buildSpec: await readFile("amplify.yml", "utf8"),
       }),
     );
@@ -116,28 +120,16 @@ async function main() {
   if (!appId) throw new SetupError("No app ID returned.");
   const app = (await amplify.send(new GetAppCommand({ appId }))).app;
   if (
-    app?.repository !== repository ||
-    app.platform !== "WEB_COMPUTE" ||
-    app.iamServiceRoleArn !== role.Arn
+    app?.name !== appName ||
+    app.repository !== repository ||
+    app.platform !== "WEB_COMPUTE"
   )
     throw new SetupError(
-      "App repository/platform/build-role mismatch. Review app configuration before retrying.",
+      "App repository/platform mismatch. Review app configuration before retrying.",
     );
-  try {
-    await amplify.send(
-      new GetBranchCommand({ appId, branchName: "development" }),
-    );
-  } catch (error) {
-    if ((error as Error).name !== "NotFoundException") throw error;
-    await amplify.send(
-      new CreateBranchCommand({
-        appId,
-        branchName: "development",
-        stage: "DEVELOPMENT",
-        framework: "Custom",
-        enableAutoBuild: false,
-        enablePullRequestPreview: false,
-      }),
+  if (app.iamServiceRoleArn !== role.Arn) {
+    throw new SetupError(
+      "The app uses a different service role. Use a separate development app; existing app-wide roles are never replaced.",
     );
   }
   const account = role.Arn.split(":")[4];
@@ -161,9 +153,44 @@ async function main() {
               StringEquals: { "iam:PassedToService": "amplify.amazonaws.com" },
             },
           },
+          {
+            Effect: "Allow",
+            Action: [
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+            ],
+            Resource: [
+              `arn:aws:logs:${region}:${account}:log-group:/aws/amplify/${appId}`,
+              `arn:aws:logs:${region}:${account}:log-group:/aws/amplify/${appId}:*`,
+            ],
+          },
         ],
       }),
     }),
+  );
+  const settings = {
+    appId,
+    branchName: "development",
+    stage: "DEVELOPMENT" as const,
+    framework: "Custom",
+    enableAutoBuild: false,
+    enablePullRequestPreview: false,
+    buildSpec: await readFile("amplify.yml", "utf8"),
+  };
+  let branchExists = true;
+  try {
+    await amplify.send(
+      new GetBranchCommand({ appId, branchName: "development" }),
+    );
+  } catch (error) {
+    if ((error as Error).name !== "NotFoundException") throw error;
+    branchExists = false;
+  }
+  await amplify.send(
+    branchExists
+      ? new UpdateBranchCommand(settings)
+      : new CreateBranchCommand(settings),
   );
   await mkdir(".data", { recursive: true });
   await writeFile(
