@@ -35,6 +35,9 @@ application, dependencies and commands remain at the repository root. This
 separates generic compute hosting from Amplify's
 native Next.js dependency detection, which expects `.next` artifacts. `hosting`
 is only a deployment entry, not another application or package installation.
+The preparation command synchronizes the dedicated app and branch build specs
+and app-root variables; stale app-wide settings can disagree with the branch.
+It preserves unrelated environment values and never changes a service role.
 
 ## First development deployment
 

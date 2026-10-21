@@ -5,6 +5,7 @@ import {
   ListAppsCommand,
   GetAppCommand,
   CreateAppCommand,
+  UpdateAppCommand,
   GetBranchCommand,
   CreateBranchCommand,
   UpdateBranchCommand,
@@ -113,6 +114,7 @@ async function main() {
         enableBranchAutoBuild: false,
         enableAutoBranchCreation: false,
         buildSpec: await readFile("amplify.yml", "utf8"),
+        environmentVariables: { AMPLIFY_MONOREPO_APP_ROOT: "hosting" },
       }),
     );
     appId = result.app?.appId;
@@ -132,6 +134,18 @@ async function main() {
       "The app uses a different service role. Use a separate development app; existing app-wide roles are never replaced.",
     );
   }
+  // Keep validation's app metadata aligned with branch/repository build settings.
+  // This owned app contains development only; never replace its service role.
+  await amplify.send(
+    new UpdateAppCommand({
+      appId,
+      buildSpec: await readFile("amplify.yml", "utf8"),
+      environmentVariables: {
+        ...app.environmentVariables,
+        AMPLIFY_MONOREPO_APP_ROOT: "hosting",
+      },
+    }),
+  );
   const account = role.Arn.split(":")[4];
   await iam.send(
     new PutRolePolicyCommand({

@@ -11,6 +11,7 @@ applications:
             - npx ampx pipeline-deploy --branch "$AWS_BRANCH" --app-id "$AWS_APP_ID"
             - npx tsx scripts/attach-amplify-role.ts
     frontend:
+      buildPath: hosting
       phases:
         build:
           commands:
