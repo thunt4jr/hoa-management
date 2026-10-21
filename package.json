@@ -1,0 +1,45 @@
+{
+  "name": "hoa-management",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "next typegen && tsc --noEmit",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "test": "node --import tsx --test tests/unit.test.ts",
+    "test:db": "tsx scripts/isolated-tests.ts database",
+    "test:e2e": "tsx scripts/isolated-tests.ts browser",
+    "check": "npm run lint && npm run typecheck && npm test && npm run test:db && npm run build",
+    "format": "prettier --write pages src scripts tests styles next.config.ts proxy.ts playwright.config.ts",
+    "format:check": "prettier --check pages src scripts tests styles next.config.ts proxy.ts playwright.config.ts"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "3.1154.0",
+    "jose": "6.2.13",
+    "next": "16.4.2",
+    "pg": "8.23.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.64.1",
+    "@types/node": "24.19.2",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "10.13.0",
+    "eslint-config-next": "16.4.2",
+    "prettier": "3.9.10",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3"
+  }
+}

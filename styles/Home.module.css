@@ -1,0 +1,33 @@
+.main {
+  display: grid;
+  min-height: 100svh;
+  align-items: center;
+  padding: 2rem;
+}
+
+.content {
+  width: 100%;
+  max-width: 52rem;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.content h1 {
+  max-width: 12ch;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.description {
+  margin-top: 1.5rem;
+  color: #52675d;
+  font-size: 1.125rem;
+}
