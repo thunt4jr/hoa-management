@@ -4,6 +4,7 @@ import {
   CognitoIdentityProviderClient,
   DescribeUserPoolCommand,
   DescribeUserPoolClientCommand,
+  GetUserPoolMfaConfigCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { withContext, closeDatabase } from "../src/server/db";
 
@@ -71,6 +72,10 @@ async function main() {
       )
     ).UserPoolClient!;
     assert.equal(pool.MfaConfiguration, "ON");
+    const factors = await cognito.send(
+      new GetUserPoolMfaConfigCommand({ UserPoolId: runtime.userPoolId }),
+    );
+    assert.equal(factors.SoftwareTokenMfaConfiguration?.Enabled, true);
     assert.deepEqual(pool.Policies?.SignInPolicy?.AllowedFirstAuthFactors, [
       "PASSWORD",
     ]);
@@ -85,6 +90,12 @@ async function main() {
   console.log(
     "PASS: live Cognito required MFA, password-only pool and fixed public-client callback.",
   );
+  if (process.argv.includes("--backend-only")) {
+    console.log(
+      "Backend-only checks complete; HTTP and human signup/TOTP are not verified.",
+    );
+    return;
+  }
 
   const get = (pathname: string, options: RequestInit = {}) =>
     fetch(new URL(pathname, runtime.origin), {
@@ -145,13 +156,18 @@ async function main() {
     ),
   );
   const provider = await fetch(authorize, {
-    redirect: "manual",
+    redirect: "follow",
     signal: AbortSignal.timeout(30000),
   });
+  assert.equal(provider.status, 200, "Cognito login page must render.");
+  assert.equal(new URL(provider.url).origin, runtime.cognitoDomain);
   assert.ok(
-    [200, 302, 303].includes(provider.status),
-    "Cognito authorization page must be available.",
+    !new URL(provider.url).pathname.includes("error"),
+    "Cognito must not redirect to an error page.",
   );
+  const providerPage = await provider.text();
+  assert.match(providerPage, /name=["']username["']/);
+  assert.match(providerPage, /name=["']password["']/);
   console.log(
     "PASS: live server-side login start, PKCE/nonce, host-only secure OAuth cookie and Cognito entry page. Full human signup/TOTP/callback remains unverified.",
   );

@@ -23,6 +23,10 @@ no-store. ISR and image optimization need separate adapter work before use.
 Compute has only /tmp writable and a 15-minute execution limit; long-running work
 needs separate jobs. The preview defineHosting API is not used.
 
+The standalone adapter identifies itself as `nextjs-standalone` in its manifest,
+with a `Custom` branch framework. The native `nextjs`/`Next.js - SSR` labels select
+Amplify's native adapter, which expects `.next` instead of our deployment bundle.
+
 ## First development deployment
 
 Prerequisites: Node 24/npm, authenticated personal AWS credentials, `gh` signed
@@ -89,6 +93,15 @@ changes before promotion. If CDK bootstrap is missing, review and explicitly
 bootstrap this account/region with deployment permissions for Cognito, S3, RDS,
 Lambda, IAM, secrets and networking. Never grant these powers to the web runtime.
 
+Keep `amplify/package.json` with `type: module`. The synthesis check uses the
+scoped TypeScript loader bundled with Amplify's deployer, matching CI rather than
+a global tsx hook. When updating dependencies, test `npm ci` in a clean checkout.
+Amplify's bundled dependencies can cause an existing node_modules tree to produce
+inconsistent nested Zod/OpenTelemetry lock entries. If that occurs, regenerate the
+lock from the existing manifest and lock in a directory without node_modules,
+review the diff, and prove a clean install before pushing. Keep direct versions
+and security overrides pinned.
+
 ## Permissions and tenant isolation
 
 The deployment role uses AWS's
@@ -133,6 +146,13 @@ the AWS envelope over real PostgreSQL, not the live service. IaC selects Aurora
 PostgreSQL 18 checks do not establish Aurora compatibility. Generated amplifyapp.com
 hostnames provide no community wildcard DNS/TLS; an owned domain and validated
 routing are still required. Customer-domain provisioning remains deferred.
+
+After fetching the deployed outputs, run
+`AWS_PROFILE=personal npm run verify:deployment`. This checks the live runtime
+database role/RLS, session-table denial, Cognito configuration, HTTPS pages,
+cache headers, disabled synthetic login, invalid callback denial, and a real PKCE
+login start. It creates no user or membership. It does not complete a human
+signup/TOTP challenge or establish production readiness.
 
 ## Cost controls
 

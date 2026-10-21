@@ -64,7 +64,8 @@ export async function packageAmplify(
           { name: "default", runtime: "nodejs24.x", entrypoint: "entry.cjs" },
         ],
         framework: {
-          name: "nextjs",
+          // Identify this adapter separately from Amplify's native Next.js adapter.
+          name: "nextjs-standalone",
           version: JSON.parse(
             await readFile("node_modules/next/package.json", "utf8"),
           ).version,
