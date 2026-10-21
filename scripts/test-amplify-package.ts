@@ -86,7 +86,7 @@ async function main() {
       ["/_next/static/*", "/*"],
     );
     assert.equal(manifest.computeResources[0].runtime, "nodejs24.x");
-    assert.equal(manifest.framework.name, "nextjs-standalone");
+    assert.equal(manifest.framework.name, "custom-node-http");
     async function inspect(directory: string) {
       for (const entry of await readdir(directory, { withFileTypes: true })) {
         assert.ok(

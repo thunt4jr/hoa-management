@@ -9,7 +9,7 @@ export default defineConfig([
     ".next/**",
     ".data/**",
     ".amplify/**",
-    ".amplify-hosting/**",
+    "**/.amplify-hosting/**",
     "cdk.out/**",
     ".npm/**",
     "test-results/**",

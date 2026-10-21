@@ -68,9 +68,9 @@ export async function packageAmplify(
         ],
         framework: {
           // Identify this adapter separately from Amplify's native Next.js adapter.
-          name: "nextjs-standalone",
+          name: "custom-node-http",
           version: JSON.parse(
-            await readFile("node_modules/next/package.json", "utf8"),
+            await readFile("package.json", "utf8"),
           ).version,
         },
       },
