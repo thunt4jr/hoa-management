@@ -3,6 +3,11 @@
 Keep Next.js 16, TypeScript, npm, and the Pages Router. Preserve uncommitted work;
 do not initialize Git, commit, or deploy without an explicit request.
 
+Use `development` for ongoing work. Start feature/fix branches from `development`
+and target their pull requests there. Promote reviewed changes through
+`development` → `staging` → `main`; validate in staging before merging to `main`.
+Do not bypass this order or treat a branch push as authorization to deploy.
+
 Read `docs/architecture.md`, `docs/authorization.md`, and
 `docs/implementation-checklist.md` before changing server behavior. The full
 product scope belongs in `docs/product-brief.md`.

@@ -114,7 +114,14 @@ Read the [product brief](docs/product-brief.md), [architecture](docs/architectur
 [domain evaluation](docs/domain-onboarding.md), [events contract](docs/events-and-moderation.md),
 and [implementation checklist](docs/implementation-checklist.md).
 
-Keep existing branch conventions. No commits, tags, Releases, or deployment were
-created by this implementation. GitHub Releases are not configured. If adopted,
+## Branch workflow
+
+Use `development` for ongoing work and as the base for feature/fix branches.
+Target feature pull requests at `development`, then promote reviewed changes
+through `development` → `staging` → `main`. Run the required checks before promotion
+and validate in the staging environment before merging to `main`.
+Branch creation and pushes do not provision environments or deploy the app.
+
+GitHub Releases are not configured. If adopted,
 use reviewed semantic versions, matching `vX.Y.Z` tags, a changelog describing
 user-visible changes and migrations, and explicit maintainer approval to publish.
