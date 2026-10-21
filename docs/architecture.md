@@ -21,6 +21,11 @@ account, us-east-1. Gen 2 defines Cognito and private S3 and uses CDK custom
 resources for a single Aurora PostgreSQL Serverless v2 database. It does not add
 DynamoDB, AppSync, a second authentication system, or a second database.
 
+Development has its own Amplify app, `hoa-management-development`, containing
+only the development branch. Its build/runtime roles do not replace the original
+app's main-branch role. Automatic builds and previews are disabled; deploys are
+explicit. See the [deployment record](development-deployment.md).
+
 Amplify's [native Next.js adapter lists support through version 15](https://docs.aws.amazon.com/amplify/latest/userguide/ssr-amplify-support.html).
 Keep the existing Next.js 16 Pages Router and package its standalone server using
 the documented [Node 24 compute deployment specification](https://docs.aws.amazon.com/amplify/latest/userguide/ssr-deployment-specification.html).
@@ -48,8 +53,9 @@ IaC selects Aurora PostgreSQL 17.7, 0–2 ACUs, a 15-minute idle auto-pause, enc
 storage, seven-day automated backups, deletion protection and retained state.
 AWS documents [Data API support for PostgreSQL 17.4+ in us-east-1](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.Aurora_Fea_Regions_DB-eng.Feature.Data_API.html).
 Check the exact available engine minor through the account API before deployment. Local tests
-use PostgreSQL 18.6; live Aurora/Data API and Cognito flows require separate AWS
-verification. Zero minimum ACUs reduces idle compute charges; storage, secrets,
+use PostgreSQL 18.6. Live Aurora runtime-role/RLS and Cognito configuration checks
+have passed; complete signup/TOTP/callback testing is still required. Zero minimum
+ACUs reduces idle compute charges; storage, secrets,
 active compute, builds and hosting still incur charges. This is no spending cap.
 Only development is enabled in IaC; staging/main require separately reviewed
 resources and deployment configuration. No synthetic seed runs in AWS.

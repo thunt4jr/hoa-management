@@ -11,7 +11,9 @@ Gen 2 defines verified-email, password-only Cognito with required TOTP, a privat
 versioned S3 bucket without resident access grants, and one private Aurora
 PostgreSQL Serverless v2 database. There is no AppSync or DynamoDB. No payments,
 outbound email integration, custom domains, uploads or event jobs are activated.
-Cloud deployment and live provider verification remain pending AWS authentication.
+The development backend is deployed. See the dated
+[deployment verification record](development-deployment.md) for hosting status,
+live checks and outstanding identity/recovery gates.
 
 Next.js 16 uses a repository-maintained bundle following
 [Amplify's Node compute specification](https://docs.aws.amazon.com/amplify/latest/userguide/ssr-deployment-specification.html).
@@ -24,8 +26,12 @@ Compute has only /tmp writable and a 15-minute execution limit; long-running wor
 needs separate jobs. The preview defineHosting API is not used.
 
 The standalone adapter identifies itself as `nextjs-standalone` in its manifest,
-with a `Custom` branch framework. The native `nextjs`/`Next.js - SSR` labels select
-Amplify's native adapter, which expects `.next` instead of our deployment bundle.
+with a `Custom` branch framework. `npm run build` invokes the unchanged Next CLI
+through `scripts/build-next.mjs`. Amplify's
+[automatic detection inspects the npm build script](https://docs.aws.amazon.com/amplify/latest/userguide/deploy-nextjs-app.html);
+a literal `next build` selects its native adapter even with a custom manifest.
+That adapter expects `.next` rather than our compute bundle. Keep this explicit
+build wrapper when using the standalone packaging integration.
 
 ## First development deployment
 

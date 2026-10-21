@@ -6,8 +6,9 @@ A multi-community HOA platform under development, using the existing Next.js
 The first slice provides community registration and independent authority review,
 duplicate protection, scoped access, community switching, a limited authorized
 management portfolio, and audited membership revocation. It does not collect
-money or implement the remaining product modules. Cognito integration code needs
-live sandbox verification; local tests use an explicit development-only adapter.
+money or implement the remaining product modules. The development backend is
+deployed; complete Cognito signup/TOTP verification remains outstanding. Local
+tests use an explicit development-only adapter.
 
 ## Local setup
 
@@ -117,9 +118,10 @@ through version 15. The repository owns this packaging integration. Only the
 
 See [deployment and recovery](docs/deployment.md) for setup commands, permissions,
 cost controls, migrations, rollback, verification boundaries and launch gates.
-AWS deployment and live identity verification remain pending until the personal
-AWS CLI session and provider access are verified. Local tests are not evidence
-of a successful cloud deployment.
+See the dated [development deployment record](docs/development-deployment.md) for
+the AWS environment, actual verification results and remaining release gates.
+Live Aurora and Cognito configuration checks have passed; complete human identity
+and production-equivalent recovery testing remain outstanding.
 
 Read the [product brief](docs/product-brief.md), [architecture](docs/architecture.md),
 [authorization matrix](docs/authorization.md), [payment design](docs/payment-flows.md),
