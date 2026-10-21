@@ -49,7 +49,7 @@ export async function submitRegistration(actor: Principal, input: unknown) {
   return withContext(actor, null, async (db) => {
     try {
       const result = await db.query(
-        "SELECT hoa.submit_registration($1,$2,$3) AS id",
+        "SELECT hoa.submit_registration($1::jsonb,$2,$3) AS id",
         [
           { ...data, normalizedAddress: address.normalized },
           address.key,
@@ -78,13 +78,13 @@ export async function dashboard(actor: Principal, communityId: string) {
     await requirePermission(db, communityId, "community.read");
     const community = (
       await db.query(
-        "SELECT id,legal_name,display_name,slug,timezone,status FROM hoa.communities WHERE id=$1",
+        "SELECT id,legal_name,display_name,slug,timezone,status FROM hoa.communities WHERE id=$1::uuid",
         [communityId],
       )
     ).rows[0];
     const membership = (
       await db.query(
-        "SELECT id,role FROM hoa.memberships WHERE community_id=$1 AND user_id=$2",
+        "SELECT id,role FROM hoa.memberships WHERE community_id=$1::uuid AND user_id=$2::uuid",
         [communityId, actor.id],
       )
     ).rows[0];
@@ -92,7 +92,7 @@ export async function dashboard(actor: Principal, communityId: string) {
       membership.role === "community_admin"
         ? (
             await db.query(
-              "SELECT id,role,user_id,revoked_at FROM hoa.memberships WHERE community_id=$1 ORDER BY starts_at",
+              "SELECT id,role,user_id,revoked_at FROM hoa.memberships WHERE community_id=$1::uuid ORDER BY starts_at",
               [communityId],
             )
           ).rows
@@ -101,7 +101,7 @@ export async function dashboard(actor: Principal, communityId: string) {
       membership.role === "community_admin"
         ? (
             await db.query(
-              "SELECT action,resource_id,created_at FROM hoa.audit_events WHERE community_id=$1 ORDER BY created_at DESC LIMIT 20",
+              "SELECT action,resource_id,created_at FROM hoa.audit_events WHERE community_id=$1::uuid ORDER BY created_at DESC LIMIT 20",
               [communityId],
             )
           ).rows
@@ -128,7 +128,7 @@ export async function reviewRegistration(
     await requirePlatformAdmin(db);
     return (
       await db.query(
-        "SELECT hoa.review_registration($1,$2,$3,$4) AS community_id",
+        "SELECT hoa.review_registration($1::uuid,$2,$3,$4) AS community_id",
         [id, data.decision, data.reason, data.evidence],
       )
     ).rows[0];

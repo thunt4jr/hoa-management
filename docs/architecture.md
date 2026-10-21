@@ -4,9 +4,10 @@
 
 The existing project was a Next.js 16.4.2 / React 19.3.1 Pages Router starter with
 strict TypeScript 6.0.3, ESLint 10, npm, and Node 24. There was no database,
-authentication, infrastructure, environment example, or test suite. The directory
-is untracked within an ancestor Git repository; no repository was initialized,
-branch changed, commit created, or pre-existing work discarded.
+authentication, infrastructure, environment example, or test suite. At initial assessment, the directory
+was untracked within an ancestor Git repository. A dedicated repository was later
+created and pushed at the user's request with development → staging → main branches.
+Pre-existing work was preserved.
 
 This implementation retains that stack and adds a modular server application,
 PostgreSQL, Cognito integration code, and isolated tests. There is one database and
@@ -15,19 +16,43 @@ Next.js ESLint tooling does not support the TypeScript 7 API.
 
 ## Hosting decision
 
-Use a Node 24 standalone Next.js container on ECS Fargate behind an HTTPS ALB,
-with private RDS PostgreSQL, Secrets Manager, and private S3 in later phases.
-This is a deployment target, not provisioned infrastructure. AWS currently lists
-[Amplify SSR support through Next.js 15](https://docs.aws.amazon.com/amplify/latest/userguide/ssr-amplify-support.html).
-Preserving Next.js 16 makes the [supported Node/container deployment](https://nextjs.org/docs/pages/getting-started/deploying)
-the appropriate starting target. Cognito does not require Amplify Hosting or a
-second authentication library.
+At the user's request, development targets AWS Amplify Gen 2 in the personal
+account, us-east-1. Gen 2 defines Cognito and private S3 and uses CDK custom
+resources for a single Aurora PostgreSQL Serverless v2 database. It does not add
+DynamoDB, AppSync, a second authentication system, or a second database.
 
-Local integration tests use PostgreSQL 18.6 binaries. RDS documents
-[PostgreSQL 18 support](https://docs.aws.amazon.com/AmazonRDS/latest/PostgreSQLReleaseNotes/postgresql-release-calendar.html);
-confirm the exact minor version and region before provisioning. No AWS account,
-region-specific quotas, Cognito pool, deployment, or external integration has
-been exercised by these tests.
+Amplify's [native Next.js adapter lists support through version 15](https://docs.aws.amazon.com/amplify/latest/userguide/ssr-amplify-support.html).
+Keep the existing Next.js 16 Pages Router and package its standalone server using
+the documented [Node 24 compute deployment specification](https://docs.aws.amazon.com/amplify/latest/userguide/ssr-deployment-specification.html).
+This repository maintains that packaging adapter. It has no ISR, image optimizer,
+streaming-specific adapter, or use of the preview `defineHosting` API. Test those
+features before adding them. The older container Dockerfile remains an optional
+exit path; ECS/Fargate is no longer the selected deployment target.
+
+The Aurora Data API allows Amplify compute to reach a private database without
+public PostgreSQL, a VPC-attached web server, or NAT gateways. Each request starts
+an explicit transaction, checks its non-owner runtime role, sets transaction-local
+identity/tenant/MFA and statement timeout, performs authorization/resource queries,
+and commits or rolls back using the same Data API transaction ID. No ambiguous
+write/commit is automatically replayed. SQL parameters remain bound; UUID,
+JSONB, integer and void-returning calls use explicit casts where needed.
+See [AWS's RLS/Data API pattern](https://aws.amazon.com/blogs/database/enforce-row-level-security-with-the-rds-data-api/).
+
+The migration Lambda alone can read the generated schema-owner credential.
+Runtime IAM can read only its own login secret and the session secret, call the
+cluster's Data API, and perform the two required Cognito assurance reads. The
+runtime role neither owns tables nor bypasses RLS. Migration changes use checksum
+records and an advisory transaction lock. Unchanged migrations are a no-op.
+
+IaC selects Aurora PostgreSQL 17.7, 0–2 ACUs, a 15-minute idle auto-pause, encrypted
+storage, seven-day automated backups, deletion protection and retained state.
+AWS documents [Data API support for PostgreSQL 17.4+ in us-east-1](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.Aurora_Fea_Regions_DB-eng.Feature.Data_API.html).
+Check the exact available engine minor through the account API before deployment. Local tests
+use PostgreSQL 18.6; live Aurora/Data API and Cognito flows require separate AWS
+verification. Zero minimum ACUs reduces idle compute charges; storage, secrets,
+active compute, builds and hosting still incur charges. This is no spending cap.
+Only development is enabled in IaC; staging/main require separately reviewed
+resources and deployment configuration. No synthetic seed runs in AWS.
 
 ## Implemented slice
 

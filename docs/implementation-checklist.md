@@ -9,6 +9,9 @@ Unchecked items are remaining work, including unverified external integrations.
 - [x] Record architecture, identity, permissions, payment/domain decisions and assumptions.
 - [x] Implement Cognito PKCE/nonce/state/JWT and server-side assurance checks.
 - [x] Provide explicitly gated local synthetic identity adapter.
+- [x] Define Amplify Gen 2 Cognito/private S3/Aurora resources and Node 24 hosting bundle.
+- [x] Add explicit Data API transactions, bound parameters, isolated PostgreSQL protocol tests.
+- [ ] Deploy development in personal/us-east-1; verify live Aurora, hosting and Cognito.
 - [ ] Verify actual Cognito signup, email verification, MFA enrollment/challenge,
   callback replay/failure, logout, disabled identities, IAM and provider configuration.
 - [x] Opaque, expiring, host-only sessions, same-origin JSON mutations, no private cache.

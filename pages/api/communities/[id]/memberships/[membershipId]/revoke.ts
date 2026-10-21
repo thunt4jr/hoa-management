@@ -13,7 +13,10 @@ export default api(["POST"], async (req, res) => {
     .parse(req.body);
   await withContext(actor, id, async (db) => {
     await requirePermission(db, id, "members.manage");
-    await db.query("SELECT hoa.revoke_membership($1,$2)", [mid, reason]);
+    await db.query("SELECT hoa.revoke_membership($1::uuid,$2)::text", [
+      mid,
+      reason,
+    ]);
   });
   res.json({ ok: true });
 });

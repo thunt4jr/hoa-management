@@ -1,4 +1,4 @@
-import type { PoolClient } from "pg";
+import type { SqlClient } from "./db";
 import { AppError } from "./errors";
 
 export const permissions = [
@@ -14,14 +14,14 @@ export const permissions = [
 export type Permission = (typeof permissions)[number];
 
 export async function requirePermission(
-  db: PoolClient,
+  db: SqlClient,
   communityId: string,
   permission: Permission,
 ) {
-  const result = await db.query("SELECT hoa.has_permission($1,$2) AS allowed", [
-    communityId,
-    permission,
-  ]);
+  const result = await db.query(
+    "SELECT hoa.has_permission($1::uuid,$2) AS allowed",
+    [communityId, permission],
+  );
   if (!result.rows[0].allowed)
     throw new AppError(
       403,
@@ -30,7 +30,7 @@ export async function requirePermission(
     );
 }
 
-export async function requirePlatformAdmin(db: PoolClient) {
+export async function requirePlatformAdmin(db: SqlClient) {
   if (
     !(await db.query("SELECT hoa.is_platform_admin() AS allowed")).rows[0]
       .allowed

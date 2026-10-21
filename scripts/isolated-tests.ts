@@ -118,6 +118,7 @@ async function main() {
     const env = {
       ...process.env,
       DATABASE_URL: runtime,
+      DATABASE_TRANSPORT: "postgres",
       DATABASE_ADMIN_URL: admin,
       AUTH_MODE: "development",
       ALLOW_DEV_AUTH: "true",
@@ -201,6 +202,11 @@ async function main() {
       await run(
         process.execPath,
         ["--import", "tsx", "--test", "tests/database.test.ts"],
+        env,
+      );
+      await run(
+        process.execPath,
+        ["--import", "tsx", "--test", "tests/data-api-database.test.ts"],
         env,
       );
       // Exercise a real dump/restore against the synthetic database, not a backup mock.

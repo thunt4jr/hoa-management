@@ -18,6 +18,13 @@ Use `withContext` for transaction-local user/community context. The runtime
 database role must neither own tables nor bypass RLS. Add isolation tests for
 new tenant tables and recipient checks for private resources.
 
+Development targets Amplify Gen 2 in us-east-1. Keep Next.js 16 on the documented
+Node 24 compute bundle. All Data API authorization/context/resource queries must
+share an explicit transaction ID; never replay ambiguous writes or commits.
+Keep the migration secret out of the compute role. Run `npm run check` for Gen 2
+synthesis, database/restore and package checks. Do not enable staging/main
+deployments as a side effect of development work.
+
 Use integer minor units for money. Keep subscriptions separate from HOA funds.
 Do not enable payments, public resident data, custom domains, or provider mocks
 in production. The local identity adapter requires explicit opt-in and must fail

@@ -7,21 +7,27 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
-    "typecheck": "next typegen && tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p amplify/tsconfig.json",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
-    "test": "node --import tsx --test tests/unit.test.ts",
+    "test": "node --import tsx --test tests/unit.test.ts tests/data-api.test.ts tests/infrastructure.test.ts",
     "test:db": "tsx scripts/isolated-tests.ts database",
     "test:e2e": "tsx scripts/isolated-tests.ts browser",
-    "check": "npm run lint && npm run typecheck && npm test && npm run test:db && npm run build",
-    "format": "prettier --write pages src scripts tests styles next.config.ts proxy.ts playwright.config.ts",
-    "format:check": "prettier --check pages src scripts tests styles next.config.ts proxy.ts playwright.config.ts"
+    "check": "npm run lint && npm run typecheck && npm test && npm run amplify:synth && npm run test:db && npm run build && npm run test:amplify-package",
+    "format": "prettier --write pages src scripts tests styles amplify next.config.ts proxy.ts playwright.config.ts",
+    "format:check": "prettier --check pages src scripts tests styles amplify next.config.ts proxy.ts playwright.config.ts",
+    "amplify:package": "tsx scripts/package-amplify.ts",
+    "amplify:prepare": "tsx scripts/prepare-amplify.ts",
+    "amplify:synth": "node --import tsx scripts/synth-amplify.ts",
+    "test:amplify-package": "node --import tsx scripts/test-amplify-package.ts"
   },
   "engines": {
     "node": ">=24.0.0"
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "3.1154.0",
+    "@aws-sdk/client-rds-data": "3.1154.0",
+    "@aws-sdk/client-secrets-manager": "3.1154.0",
     "jose": "6.2.13",
     "next": "16.4.2",
     "pg": "8.23.1",
@@ -30,16 +36,31 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@aws-amplify/backend": "1.25.1",
+    "@aws-amplify/backend-cli": "1.10.0",
+    "@aws-sdk/client-amplify": "3.1154.0",
+    "@aws-sdk/client-cloudformation": "3.1154.0",
+    "@aws-sdk/client-iam": "3.1154.0",
     "@axe-core/playwright": "4.14.0",
     "@playwright/test": "1.64.1",
     "@types/node": "24.19.2",
     "@types/pg": "8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "aws-cdk": "2.1146.0",
+    "aws-cdk-lib": "2.274.0",
+    "constructs": "10.6.0",
+    "esbuild": "0.28.2",
     "eslint": "10.13.0",
     "eslint-config-next": "16.4.2",
     "prettier": "3.9.10",
     "tsx": "4.23.15",
     "typescript": "6.0.3"
+  },
+  "overrides": {
+    "handlebars": "4.7.10",
+    "lodash": "4.18.1",
+    "immutable": "3.8.4",
+    "mysql2": "3.24.6"
   }
 }

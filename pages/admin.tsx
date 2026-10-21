@@ -34,7 +34,7 @@ interface Review {
 export const getServerSideProps = protectedPage(async (_ctx, actor) =>
   withContext(actor, null, async (db) => {
     await requirePlatformAdmin(db);
-    await db.query("SELECT hoa.record_review_access()");
+    await db.query("SELECT hoa.record_review_access()::text");
     return {
       requests: (
         await db.query(

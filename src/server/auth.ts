@@ -84,7 +84,7 @@ export async function issueSession(
 ) {
   const token = random();
   await withContext(null, null, (db) =>
-    db.query("SELECT hoa.issue_session($1,$2,$3,$4)", [
+    db.query("SELECT hoa.issue_session($1,$2,$3,$4)::text", [
       subject,
       email.toLowerCase(),
       hash(token),
@@ -97,7 +97,7 @@ export async function signOut(req: IncomingMessage, res: ServerResponse) {
   const token = cookie(req, "session");
   if (token)
     await withContext(null, null, (db) =>
-      db.query("SELECT hoa.revoke_session($1)", [hash(token)]),
+      db.query("SELECT hoa.revoke_session($1)::text", [hash(token)]),
     );
   setCookie(res, "session", "", 0);
 }
@@ -107,7 +107,7 @@ export async function throttle(key: string, maximum: number) {
     null,
     async (db) =>
       (
-        await db.query("SELECT hoa.rate_limit($1,$2) AS allowed", [
+        await db.query("SELECT hoa.rate_limit($1,$2::integer) AS allowed", [
           hash(key),
           maximum,
         ])
@@ -188,7 +188,7 @@ export async function beginLogin(
     verifier = random(),
     nonce = random();
   await withContext(null, null, (db) =>
-    db.query("SELECT hoa.store_oauth($1,$2)", [
+    db.query("SELECT hoa.store_oauth($1,$2)::text", [
       hash(state),
       crypt(JSON.stringify({ verifier, nonce, next: safeReturnPath(next) })),
     ]),

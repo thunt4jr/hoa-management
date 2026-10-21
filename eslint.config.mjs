@@ -8,6 +8,10 @@ export default defineConfig([
   globalIgnores([
     ".next/**",
     ".data/**",
+    ".amplify/**",
+    ".amplify-hosting/**",
+    "cdk.out/**",
+    ".npm/**",
     "test-results/**",
     "playwright-report/**",
     "out/**",

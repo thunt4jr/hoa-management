@@ -2,6 +2,7 @@ import "./load-env";
 import { readdir, readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { Pool } from "pg";
+import { splitStatements } from "../src/server/sql";
 
 export async function migrate(url: string) {
   const pool = new Pool({ connectionString: url, max: 1 });
@@ -34,7 +35,7 @@ export async function migrate(url: string) {
       }
       await db.query("BEGIN");
       try {
-        await db.query(sql);
+        for (const statement of splitStatements(sql)) await db.query(statement);
         await db.query(
           "INSERT INTO public.hoa_schema_migrations(name,checksum) VALUES($1,$2)",
           [name, checksum],

@@ -16,20 +16,21 @@ or capture a callback, and forwarded host headers do not select communities.
 
 Cloudflare supports [custom hostnames and a fallback origin](https://developers.cloudflare.com/cloudflare-for-platforms/cloudflare-for-saas/start/getting-started/).
 Its [custom-origin behavior](https://developers.cloudflare.com/cloudflare-for-platforms/cloudflare-for-saas/start/advanced-settings/custom-origin/)
-requires validating DNS, origin Host/SNI, and plan-specific settings. The proposed
-AWS origin is ALB/ECS, not Amplify Hosting. There is no provisioned ALB, Cloudflare
-zone, or customer DNS access to verify compatibility. The provider is therefore a
-candidate; there is no Cloudflare SDK, wizard, API call, active mapping, or claim
-of completed integration.
+requires validating DNS, origin Host/SNI, and plan-specific settings. The selected
+AWS origin is now Amplify Hosting with a custom Node compute bundle.
+There is no owned wildcard domain, Cloudflare zone or customer DNS authorization
+configured. The generated development amplifyapp.com hostname does not provide
+arbitrary child subdomains. Cloudflare remains a candidate, with no SDK, wizard,
+active mapping or claim of compatible origin behavior.
 
-Before implementation, prove this path in staging:
+Before implementation, prove this path in an isolated staging environment:
 
-1. Create a controlled fallback hostname and TLS certificate on the ALB. Use
-   Full (strict), preserve validated customer Host, and verify TLS SNI selection.
-   [ALB host preservation is configurable](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/edit-load-balancer-attributes.html).
-2. Restrict origin access so a public caller cannot bypass the trusted edge. If
-   metadata headers are required, strip caller copies at the edge and authenticate
-   the edge-to-origin transport before accepting them. Do not trust arbitrary headers.
+1. Validate Amplify's custom-domain quotas, wildcard coverage, origin TLS/SNI,
+   Host preservation and canonical routing. An edge provider must not forward
+   unvalidated host metadata into tenant selection. The current app ignores it.
+2. Establish authenticated edge-to-origin trust if any propagation header is
+   required. Strip caller copies and prevent bypass. If the actual deployment
+   cannot satisfy this, select a different documented origin integration.
 3. Validate provider quota, plan, certificate renewal, failure/retry behavior, and
    apex support/cost. Default to a customer subdomain CNAME; never promise apex
    support or registrar edits without verified capability and explicit authority.

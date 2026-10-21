@@ -14,7 +14,7 @@ export const getServerSideProps = protectedPage(async (_ctx, actor) =>
     }[],
     registrations: (
       await db.query(
-        "SELECT id,CASE WHEN status='pending_review' AND expires_at<=now() THEN 'expired' ELSE status END AS status,kind,created_at,expires_at,payload->>'displayName' AS display_name FROM hoa.registrations WHERE applicant_id=$1 ORDER BY created_at DESC",
+        "SELECT id,CASE WHEN status='pending_review' AND expires_at<=now() THEN 'expired' ELSE status END AS status,kind,created_at,expires_at,payload->>'displayName' AS display_name FROM hoa.registrations WHERE applicant_id=$1::uuid ORDER BY created_at DESC",
         [actor.id],
       )
     ).rows as {

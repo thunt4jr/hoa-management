@@ -97,17 +97,29 @@ registration/review/switching, resource/host isolation, CSRF, and axe accessibil
 checks. Browser tests do not verify Cognito, AWS, DNS, Stripe, or legal policies.
 Automated axe checks do not establish full WCAG conformance.
 
-`npm run check` runs lint, typecheck, unit tests, database/restore tests, and build.
+`npm run check` runs lint, both TypeScript projects, unit tests, full Gen 2
+synthesis, database/restore tests, the build, and an isolated production bundle
+smoke test. The bundle test uses synthetic resource references and never calls AWS.
 Browser checks are separate because they require Chrome. `npm run format` formats
-application and test code. ESLint 10 works with this Next.js config but several
+application, infrastructure and test code. ESLint 10 works with this Next.js config but several
 bundled plugins still emit upstream peer-dependency warnings during npm install.
+The [dependency review](docs/dependency-review.md) records unresolved build-tool
+advisories and compatible security overrides. Production dependency auditing is
+clean; the full development audit is not.
 
 ## Deployment and scope
 
-The deployment target is an AWS Node container on ECS/Fargate with RDS, Cognito,
-private S3, and later Stripe Billing/Connect. No infrastructure has been provisioned
-or deployed. [Deployment and recovery](docs/deployment.md) documents secrets,
-migrations, staging, rollback, and launch gates.
+The selected target is AWS Amplify Gen 2 in us-east-1: Cognito, private S3,
+and private Aurora PostgreSQL through the Data API. Next.js 16 uses the documented
+Node 24 compute bundle because Amplify's native Next.js adapter lists support
+through version 15. The repository owns this packaging integration. Only the
+`development` branch is enabled; automatic builds and PR previews start disabled.
+
+See [deployment and recovery](docs/deployment.md) for setup commands, permissions,
+cost controls, migrations, rollback, verification boundaries and launch gates.
+AWS deployment and live identity verification remain pending until the personal
+AWS CLI session and provider access are verified. Local tests are not evidence
+of a successful cloud deployment.
 
 Read the [product brief](docs/product-brief.md), [architecture](docs/architecture.md),
 [authorization matrix](docs/authorization.md), [payment design](docs/payment-flows.md),

@@ -12,3 +12,8 @@ playwright-report/
 test-results/
 .data/
 *.dump
+.amplify/
+.amplify-hosting/
+amplify_outputs.json
+cdk.out/
+.npm/
