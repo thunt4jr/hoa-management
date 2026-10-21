@@ -179,18 +179,27 @@ async function main() {
     buildSpec: await readFile("amplify.yml", "utf8"),
   };
   let branchExists = true;
+  let branchEnvironment: Record<string, string> = {};
   try {
-    await amplify.send(
+    const existingBranch = await amplify.send(
       new GetBranchCommand({ appId, branchName: "development" }),
     );
+    branchEnvironment = existingBranch.branch?.environmentVariables || {};
   } catch (error) {
     if ((error as Error).name !== "NotFoundException") throw error;
     branchExists = false;
   }
+  const hostingSettings = {
+    ...settings,
+    environmentVariables: {
+      ...branchEnvironment,
+      AMPLIFY_MONOREPO_APP_ROOT: "hosting",
+    },
+  };
   await amplify.send(
     branchExists
-      ? new UpdateBranchCommand(settings)
-      : new CreateBranchCommand(settings),
+      ? new UpdateBranchCommand(hostingSettings)
+      : new CreateBranchCommand(hostingSettings),
   );
   await mkdir(".data", { recursive: true });
   await writeFile(

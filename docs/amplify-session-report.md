@@ -1,5 +1,8 @@
 # Amplify working-session report — 2026-10-21
 
+Historical checkpoint before SSO renewal. For the subsequent AWS deployment and
+current verification status, see [development deployment](development-deployment.md).
+
 ## Outcome
 
 Prepared the development deployment for AWS Amplify Gen 2 in the requested
