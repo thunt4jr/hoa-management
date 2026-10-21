@@ -19,7 +19,8 @@
     "amplify:package": "tsx scripts/package-amplify.ts",
     "amplify:prepare": "tsx scripts/prepare-amplify.ts",
     "amplify:synth": "node --import tsx scripts/synth-amplify.ts",
-    "test:amplify-package": "node --import tsx scripts/test-amplify-package.ts"
+    "test:amplify-package": "node --import tsx scripts/test-amplify-package.ts",
+    "verify:deployment": "node --import tsx scripts/verify-deployment.ts"
   },
   "engines": {
     "node": ">=24.0.0"
