@@ -169,6 +169,12 @@ async function main() {
           },
           {
             Effect: "Allow",
+            Action: "logs:DescribeLogGroups",
+            Resource: "*",
+            Condition: { StringEquals: { "aws:RequestedRegion": region } },
+          },
+          {
+            Effect: "Allow",
             Action: [
               "logs:CreateLogGroup",
               "logs:CreateLogStream",
