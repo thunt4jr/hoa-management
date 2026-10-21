@@ -11,19 +11,19 @@ applications:
             - npx ampx pipeline-deploy --branch "$AWS_BRANCH" --app-id "$AWS_APP_ID"
             - npx tsx scripts/attach-amplify-role.ts
     frontend:
-      buildPath: /
       phases:
         build:
           commands:
-            - npm run lint
-            - npm run typecheck
-            - npm test
-            - npm run build
-            - npm run amplify:package
+            - cd "$(git rev-parse --show-toplevel)/hosting"
+            - npm --prefix .. run lint
+            - npm --prefix .. run typecheck
+            - npm --prefix .. test
+            - npm --prefix .. run build
+            - npm --prefix .. run amplify:package
       artifacts:
         baseDirectory: .amplify-hosting
         files:
           - "**/*"
       cache:
         paths:
-          - .npm/**/*
+          - ../.npm/**/*

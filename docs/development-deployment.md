@@ -54,8 +54,8 @@ changing pinned direct dependencies. `amplify/package.json` marks backend module
 as ESM; `scripts/synth-amplify.mjs` uses the CLI deployer's scoped loader to match CI.
 `scripts/package-amplify.ts` and its smoke check identify the standalone adapter
 separately from the native Next.js adapter. The minimal `hosting/package.json`
-app root and `amplify.yml` buildPath select generic compute while the existing
-application builds at the repository root with its original Next CLI command.
+app root and matching frontend working directory select generic compute while
+root npm scripts build the existing application with its original Next CLI command.
 `scripts/verify-deployment.ts` provides
 repeatable live checks without creating users or granting authority. Package
 scripts, deployment/architecture/checklist/README docs and `.agents/PAPERCUTS.md`

@@ -11,7 +11,10 @@ import path from "node:path";
 import { build } from "esbuild";
 
 export async function packageAmplify(
-  options = { outputsFile: "amplify_outputs.json", root: ".amplify-hosting" },
+  options = {
+    outputsFile: "amplify_outputs.json",
+    root: "hosting/.amplify-hosting",
+  },
 ) {
   const outputs = JSON.parse(await readFile(options.outputsFile, "utf8"));
   const runtime = outputs.custom?.hoa;

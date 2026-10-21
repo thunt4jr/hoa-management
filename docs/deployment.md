@@ -29,8 +29,10 @@ The standalone adapter identifies itself as `nextjs-standalone` in its manifest,
 with a `Custom` branch framework. The minimal `hosting/package.json` is the
 Amplify app root; `AMPLIFY_MONOREPO_APP_ROOT=hosting` and `appRoot: hosting` must
 match. The documented [app-root/buildPath configuration](https://docs.aws.amazon.com/amplify/latest/userguide/monorepo-configuration.html)
-builds from `/`, keeping the existing Next application, dependencies and commands
-at the repository root. This separates generic compute hosting from Amplify's
+keeps the frontend working directory at `hosting`, calling the existing root npm
+scripts with `--prefix ..` and publishing `hosting/.amplify-hosting`. The Next
+application, dependencies and commands remain at the repository root. This
+separates generic compute hosting from Amplify's
 native Next.js dependency detection, which expects `.next` artifacts. `hosting`
 is only a deployment entry, not another application or package installation.
 
