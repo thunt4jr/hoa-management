@@ -11,7 +11,7 @@ Gen 2 defines verified-email, password-only Cognito with required TOTP, a privat
 versioned S3 bucket without resident access grants, and one private Aurora
 PostgreSQL Serverless v2 database. There is no AppSync or DynamoDB. No payments,
 outbound email integration, custom domains, uploads or event jobs are activated.
-The development backend is deployed. See the dated
+The development backend and hosting are deployed. See the dated
 [deployment verification record](development-deployment.md) for hosting status,
 live checks and outstanding identity/recovery gates.
 
@@ -104,6 +104,11 @@ requests share initialization. A failed read returns a generic no-store 503 and
 does not route into the application. Data API receives the runtime secret
 reference and resolves the password. No plaintext secret is packaged. The central
 origin is `https://development.YOUR_APP_ID.amplifyapp.com`.
+
+In the verified Amplify deployment, reading Secrets Manager during process startup
+failed because compute credentials were unavailable then. Reading during request
+handling succeeds. Keep secret initialization in that path; an accepted hosting
+build alone does not prove runtime IAM access or a working page.
 
 `amplify.yml` deploys Gen 2, attaches the runtime role, validates code and packages
 hosting. It never runs the synthetic seed. Database/browser tests run locally

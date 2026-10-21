@@ -6,8 +6,9 @@ A multi-community HOA platform under development, using the existing Next.js
 The first slice provides community registration and independent authority review,
 duplicate protection, scoped access, community switching, a limited authorized
 management portfolio, and audited membership revocation. It does not collect
-money or implement the remaining product modules. The development backend is
-deployed; complete Cognito signup/TOTP verification remains outstanding. Local
+money or implement the remaining product modules. The
+[development site](https://development.dmxkehgksjyhj.amplifyapp.com) is deployed;
+complete Cognito signup/TOTP verification remains outstanding. Local
 tests use an explicit development-only adapter.
 
 ## Local setup
@@ -120,7 +121,8 @@ See [deployment and recovery](docs/deployment.md) for setup commands, permission
 cost controls, migrations, rollback, verification boundaries and launch gates.
 See the dated [development deployment record](docs/development-deployment.md) for
 the AWS environment, actual verification results and remaining release gates.
-Live Aurora and Cognito configuration checks have passed; complete human identity
+Live HTTPS, Aurora, Cognito configuration and hosted-login entry checks passed;
+complete human identity
 and production-equivalent recovery testing remain outstanding.
 
 Read the [product brief](docs/product-brief.md), [architecture](docs/architecture.md),

@@ -11,7 +11,8 @@ Unchecked items are remaining work, including unverified external integrations.
 - [x] Provide explicitly gated local synthetic identity adapter.
 - [x] Define Amplify Gen 2 Cognito/private S3/Aurora resources and Node 24 hosting bundle.
 - [x] Add explicit Data API transactions, bound parameters, isolated PostgreSQL protocol tests.
-- [ ] Deploy development in personal/us-east-1; verify live Aurora, hosting and Cognito.
+- [x] Deploy development in personal/us-east-1; verify live Aurora, HTTPS boundaries,
+  Cognito configuration and hosted login entry. See [verification record](development-deployment.md).
 - [ ] Verify actual Cognito signup, email verification, MFA enrollment/challenge,
   callback replay/failure, logout, disabled identities, IAM and provider configuration.
 - [x] Opaque, expiring, host-only sessions, same-origin JSON mutations, no private cache.
