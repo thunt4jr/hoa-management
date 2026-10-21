@@ -146,6 +146,46 @@ async function main() {
       },
     }),
   );
+  const logGroup = `/aws/amplify/${appId}`;
+  const awsOptions = ["--profile", process.env.AWS_PROFILE, "--region", region];
+  const logGroups = JSON.parse(
+    execFileSync(
+      "aws",
+      [
+        "logs",
+        "describe-log-groups",
+        "--log-group-name-prefix",
+        logGroup,
+        ...awsOptions,
+        "--output",
+        "json",
+      ],
+      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+    ),
+  );
+  if (
+    !logGroups.logGroups.some(
+      (group: { logGroupName: string }) => group.logGroupName === logGroup,
+    )
+  )
+    execFileSync(
+      "aws",
+      ["logs", "create-log-group", "--log-group-name", logGroup, ...awsOptions],
+      { stdio: ["ignore", "pipe", "pipe"] },
+    );
+  execFileSync(
+    "aws",
+    [
+      "logs",
+      "put-retention-policy",
+      "--log-group-name",
+      logGroup,
+      "--retention-in-days",
+      "30",
+      ...awsOptions,
+    ],
+    { stdio: ["ignore", "pipe", "pipe"] },
+  );
   const account = role.Arn.split(":")[4];
   await iam.send(
     new PutRolePolicyCommand({

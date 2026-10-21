@@ -61,6 +61,16 @@ repeatable live checks without creating users or granting authority. Package
 scripts, deployment/architecture/checklist/README docs and `.agents/PAPERCUTS.md`
 record these behaviors and the clean-install workaround.
 
+The preparation helper synchronizes owned app/branch build metadata and provisions
+the runtime log group before deployment, with 30-day operational retention.
+`src/server/runtime.ts` and `proxy.ts` initialize the session secret during request
+handling; the entrypoint carries references and starts Next first. The package
+regression verifies that absent credentials return a no-store 503 for both public
+and protected routes. A separate local test using real temporary environment
+credentials returned 200 for `/` and 302 for login start; no credential values
+were printed or stored. The exact cloud-built artifact also returned 200 locally,
+with only its test port changed to avoid an existing server.
+
 ## Outstanding release gates
 
 Complete real signup, email verification, TOTP enrollment/challenge, successful

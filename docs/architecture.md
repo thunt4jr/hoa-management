@@ -49,6 +49,12 @@ cluster's Data API, and perform the two required Cognito assurance reads. The
 runtime role neither owns tables nor bypasses RLS. Migration changes use checksum
 records and an advisory transaction lock. Unchanged migrations are a no-op.
 
+The compute entry starts Next with non-secret references. Before routing any
+request, Node request middleware loads the session secret and shares successful
+initialization across requests. Missing credentials or failed secret reads return
+a generic no-store 503; no application route runs. No credential or secret value
+is written to logs or the deployment artifact.
+
 IaC selects Aurora PostgreSQL 17.7, 0–2 ACUs, a 15-minute idle auto-pause, encrypted
 storage, seven-day automated backups, deletion protection and retained state.
 AWS documents [Data API support for PostgreSQL 17.4+ in us-east-1](https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Concepts.Aurora_Fea_Regions_DB-eng.Feature.Data_API.html).

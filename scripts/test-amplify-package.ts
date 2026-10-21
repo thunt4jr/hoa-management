@@ -58,6 +58,16 @@ async function main() {
       req.end(body);
     });
   let server: ReturnType<typeof spawn> | undefined;
+  async function stopServer() {
+    if (!server) return;
+    const current = server;
+    current.kill("SIGTERM");
+    await new Promise<void>((resolve) => {
+      if (current.exitCode !== null) resolve();
+      else current.once("exit", () => resolve());
+    });
+    server = undefined;
+  }
   const origin = "https://development.localtest.amplifyapp.com";
   const runtime = {
     region: "us-east-1",
@@ -174,22 +184,56 @@ async function main() {
       JSON.stringify({ persona: "reviewer" }),
     );
     assert.equal(disabled.status, 404);
+    await stopServer();
+    // The entrypoint must listen without credentials and deny protected routes.
+    // No AWS request is possible: every credential source is disabled/absent.
+    const isolatedEnvironment = Object.fromEntries(
+      Object.entries(process.env).filter(([key]) => !key.startsWith("AWS_")),
+    );
+    server = spawn(process.execPath, [`${root}/compute/default/entry.cjs`], {
+      env: {
+        ...isolatedEnvironment,
+        NODE_ENV: "production",
+        PORT: "3218",
+        AWS_EC2_METADATA_DISABLED: "true",
+        AWS_CONFIG_FILE: path.resolve(fixture, "no-config"),
+        AWS_SHARED_CREDENTIALS_FILE: path.resolve(fixture, "no-credentials"),
+      },
+      stdio: "ignore",
+    });
+    let unavailable = false;
+    for (let index = 0; index < 100; index++) {
+      try {
+        const response = await send("/", { host: new URL(origin).host });
+        if (response.status === 503) {
+          assert.match(String(response.headers["cache-control"]), /no-store/);
+          assert.equal(
+            response.body,
+            "Service is temporarily unavailable. Please retry.",
+          );
+          unavailable = true;
+          break;
+        }
+      } catch {
+        /* Server is starting. */
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    assert.ok(unavailable, "Secret initialization must fail closed.");
+    assert.equal(
+      (await send("/app", { host: new URL(origin).host })).status,
+      503,
+    );
     await mkdir(".data", { recursive: true });
     await writeFile(
       ".data/amplify-package-test.json",
       JSON.stringify({ passed: true, syntheticOutputs: true, liveAWS: false }),
     );
     console.log(
-      "Synthetic package smoke passed: self-contained bundle, production server, host rejection, private cache headers and disabled development login. AWS is unverified.",
+      "Synthetic package smoke passed: self-contained bundle, host/cache boundaries, disabled development login and fail-closed request-time secret loading. AWS is unverified.",
     );
   } finally {
-    if (server) {
-      server.kill("SIGTERM");
-      await new Promise<void>((resolve) => {
-        if (server!.exitCode !== null) resolve();
-        else server!.once("exit", () => resolve());
-      });
-    }
+    await stopServer();
     // Remove the synthetic fixture; actual backend outputs/artifacts are untouched.
     await rm(fixture, { recursive: true, force: true });
   }

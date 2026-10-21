@@ -38,6 +38,10 @@ is only a deployment entry, not another application or package installation.
 The preparation command synchronizes the dedicated app and branch build specs
 and app-root variables; stale app-wide settings can disagree with the branch.
 It preserves unrelated environment values and never changes a service role.
+Preparation also creates the dedicated app's runtime log group with 30-day
+operational retention. The build role can discover groups in us-east-1 and write
+only this app's logs. Startup failures log a phase and sanitized error class,
+never secret values, request bodies or provider error messages.
 
 ## First development deployment
 
@@ -93,8 +97,11 @@ npm run build
 npm run amplify:package
 ```
 
-Gen 2 writes ignored `amplify_outputs.json`. The runtime entrypoint reads the
-session secret using its compute IAM role. Data API receives the runtime secret
+Gen 2 writes ignored `amplify_outputs.json`. The runtime entrypoint installs
+non-secret references and starts Next.js. Request middleware loads the session
+secret through the compute IAM role before host checks or routing; concurrent
+requests share initialization. A failed read returns a generic no-store 503 and
+does not route into the application. Data API receives the runtime secret
 reference and resolves the password. No plaintext secret is packaged. The central
 origin is `https://development.YOUR_APP_ID.amplifyapp.com`.
 

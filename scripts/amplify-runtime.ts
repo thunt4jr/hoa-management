@@ -1,26 +1,12 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { createRequire } from "node:module";
-import {
-  SecretsManagerClient,
-  GetSecretValueCommand,
-} from "@aws-sdk/client-secrets-manager";
 
 let phase = "load-config";
 async function start() {
   const runtime = JSON.parse(
     await readFile(path.join(__dirname, "hoa-runtime.json"), "utf8"),
   );
-  const client = new SecretsManagerClient({
-    region: runtime.region,
-    maxAttempts: 2,
-  });
-  phase = "read-session-secret";
-  const value = await client.send(
-    new GetSecretValueCommand({ SecretId: runtime.sessionSecretArn }),
-  );
-  if (!value.SecretString || value.SecretString.length < 32)
-    throw new Error("Missing session secret.");
   Object.assign(process.env, {
     NODE_ENV: "production",
     HOSTNAME: "0.0.0.0",
@@ -31,7 +17,7 @@ async function start() {
     COMMUNITY_BASE_DOMAIN: new URL(runtime.origin).hostname,
     AUTH_MODE: "cognito",
     ALLOW_DEV_AUTH: "false",
-    SESSION_SECRET: value.SecretString,
+    RUNTIME_SESSION_SECRET_ARN: runtime.sessionSecretArn,
     DATABASE_TRANSPORT: "data-api",
     DATABASE_RESOURCE_ARN: runtime.resourceArn,
     DATABASE_SECRET_ARN: runtime.secretArn,
@@ -42,7 +28,7 @@ async function start() {
   });
   delete process.env.DATABASE_URL;
   delete process.env.DATABASE_ADMIN_URL;
-  client.destroy();
+  delete process.env.SESSION_SECRET;
   phase = "start-server";
   createRequire(path.join(__dirname, "entry.cjs"))(
     path.join(__dirname, "server.js"),
